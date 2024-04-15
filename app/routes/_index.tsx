@@ -2,8 +2,9 @@ import type { ActionFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Form, Link, redirect } from "@remix-run/react";
-import { PrismaClient } from "@prisma/client";
-import { PrismaD1 } from "@prisma/adapter-d1";
+import { Kysely } from "kysely";
+import { D1Dialect } from "kysely-d1";
+import { DB } from "~/db/kysely.types";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,15 +21,19 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   const body = await request.formData();
 
-  const adapter = new PrismaD1(env.DB);
-  const prisma = new PrismaClient({ adapter });
-
-  await prisma.user.create({
-    data: {
-      name: body.get("name") as string,
-      email: body.get("email") as string,
-    },
+  const db = new Kysely<DB>({
+    dialect: new D1Dialect({ database: env.DB }),
   });
+
+  await db
+    .insertInto("User")
+    .values([
+      {
+        name: body.get("name") as string,
+        email: body.get("email") as string,
+      },
+    ])
+    .execute();
 
   return redirect("/");
 }
