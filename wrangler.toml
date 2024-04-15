@@ -1,0 +1,4 @@
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "remix-workshop"
+database_id = "34cf6016-7873-43c2-bd4a-02f154b258af"

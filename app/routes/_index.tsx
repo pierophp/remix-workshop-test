@@ -1,7 +1,9 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import type { ActionFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { Link } from "@remix-run/react";
+import { Form, Link, redirect } from "@remix-run/react";
+import { PrismaClient } from "@prisma/client";
+import { PrismaD1 } from "@prisma/adapter-d1";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,6 +15,24 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const env = context.cloudflare.env as Env;
+
+  const body = await request.formData();
+
+  const adapter = new PrismaD1(env.DB);
+  const prisma = new PrismaClient({ adapter });
+
+  await prisma.user.create({
+    data: {
+      name: body.get("name") as string,
+      email: body.get("email") as string,
+    },
+  });
+
+  return redirect("/");
+}
+
 export default function Index() {
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
@@ -23,19 +43,30 @@ export default function Index() {
               The fastest way to deploy your app
             </h1>
             <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-              Enter your email to get started with the platform that offers the best developer experience.
+              Enter your email to get started with the platform that offers the
+              best developer experience.
             </p>
           </div>
           <div className="w-full max-w-sm space-y-2">
-            <form className="space-y-2">
-              <Input placeholder="Enter your email" required type="email" />
+            <Form className="space-y-2" method="post">
+              <Input placeholder="Enter your name" required name="name" />
+              <Input
+                placeholder="Enter your email"
+                required
+                type="email"
+                name="email"
+              />
               <Button className="w-full" type="submit">
                 Sign Up
               </Button>
-            </form>
+            </Form>
+
             <p className="text-xs text-gray-500 dark:text-gray-400">
               By clicking this button, you agree to the
-              <Link className="underline underline-offset-2" to="https://google.com">
+              <Link
+                className="underline underline-offset-2"
+                to="https://google.com"
+              >
                 Terms & Conditions
               </Link>
               .
