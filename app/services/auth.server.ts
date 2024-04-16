@@ -5,6 +5,7 @@ import { sessionStorage } from "~/services/session.server";
 import { DB, User } from "~/db/kysely.types";
 import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";
+import * as process from "node:process";
 
 // Create an instance of the authenticator, pass a generic with what
 // strategies will return and will store in the session

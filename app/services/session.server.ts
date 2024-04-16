@@ -1,4 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/cloudflare";
+import * as process from "node:process";
 
 // export the whole sessionStorage object
 export let sessionStorage = createCookieSessionStorage({
