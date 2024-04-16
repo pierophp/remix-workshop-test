@@ -11,9 +11,9 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   // If the user is already authenticated redirect to /dashboard directly
-  let user = await getAuthenticator().isAuthenticated(request, {
+  let user = await getAuthenticator(context).isAuthenticated(request, {
     failureRedirect: "/login",
   });
 

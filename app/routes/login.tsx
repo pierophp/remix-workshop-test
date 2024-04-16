@@ -12,8 +12,8 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  await getAuthenticator().isAuthenticated(request, {
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  await getAuthenticator(context).isAuthenticated(request, {
     successRedirect: "/dashboard",
   });
 

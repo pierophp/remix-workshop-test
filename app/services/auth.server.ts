@@ -5,25 +5,28 @@ import { sessionStorage } from "~/services/session.server";
 import { DB, User } from "~/db/kysely.types";
 import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";
-import * as process from "node:process";
+import { AppLoadContext } from "@remix-run/cloudflare";
 
 // Create an instance of the authenticator, pass a generic with what
 // strategies will return and will store in the session
 // @todo Improve the any to User
 let authenticatorCache: Authenticator<any> | null = null;
 
-export function getAuthenticator(): Authenticator<any> {
+export function getAuthenticator(context: AppLoadContext): Authenticator<any> {
   if (authenticatorCache) {
     return authenticatorCache;
   }
 
   let authenticator = new Authenticator<any>(sessionStorage);
 
+  // @todo improve type
+  const env = context.cloudflare.env as any;
+
   let googleStrategy = new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL as string,
+      clientID: env.GOOGLE_CLIENT_ID as string,
+      clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+      callbackURL: env.GOOGLE_CALLBACK_URL as string,
     },
     async ({ profile, context }) => {
       const env = context?.cloudflare.env as Env;
