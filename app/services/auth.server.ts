@@ -1,7 +1,7 @@
 // app/services/auth.server.ts
 import { GoogleStrategy } from "remix-auth-google";
 import { Authenticator } from "remix-auth";
-import { sessionStorage } from "~/services/session.server";
+import { getSessionStorage } from "~/services/session.server";
 import { DB, User } from "~/db/kysely.types";
 import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";
@@ -17,7 +17,7 @@ export function getAuthenticator(context: AppLoadContext): Authenticator<any> {
     return authenticatorCache;
   }
 
-  let authenticator = new Authenticator<any>(sessionStorage);
+  let authenticator = new Authenticator<any>(getSessionStorage(context));
 
   // @todo improve type
   const env = context.cloudflare.env as any;
