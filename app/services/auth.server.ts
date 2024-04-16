@@ -10,51 +10,63 @@ import * as process from "node:process";
 // Create an instance of the authenticator, pass a generic with what
 // strategies will return and will store in the session
 // @todo Improve the any to User
-export let authenticator = new Authenticator<any>(sessionStorage);
+let authenticatorCache: Authenticator<any> | null = null;
 
-let googleStrategy = new GoogleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID as string,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL as string,
-  },
-  async ({ profile, context }) => {
-    const env = context?.cloudflare.env as Env;
+export function getAuthenticator(): Authenticator<any> {
+  if (authenticatorCache) {
+    return authenticatorCache;
+  }
 
-    const db = new Kysely<DB>({
-      dialect: new D1Dialect({ database: env.DB }),
-    });
+  let authenticator = new Authenticator<any>(sessionStorage);
 
-    const email = profile.emails[0].value;
+  let googleStrategy = new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL as string,
+    },
+    async ({ profile, context }) => {
+      const env = context?.cloudflare.env as Env;
 
-    let user = await db
-      .selectFrom("User")
-      .selectAll()
-      .where("email", "=", email)
-      .executeTakeFirst();
+      const db = new Kysely<DB>({
+        dialect: new D1Dialect({ database: env.DB }),
+      });
 
-    if (user) {
+      const email = profile.emails[0].value;
+
+      let user = await db
+        .selectFrom("User")
+        .selectAll()
+        .where("email", "=", email)
+        .executeTakeFirst();
+
+      if (user) {
+        return user;
+      }
+
+      const result = await db
+        .insertInto("User")
+        .values([
+          {
+            name: profile.displayName,
+            email: email,
+          },
+        ])
+        .executeTakeFirstOrThrow();
+
+      user = await db
+        .selectFrom("User")
+        .selectAll()
+        .where("id", "=", Number(result.insertId))
+        .executeTakeFirstOrThrow();
+
       return user;
     }
+  );
 
-    const result = await db
-      .insertInto("User")
-      .values([
-        {
-          name: profile.displayName,
-          email: email,
-        },
-      ])
-      .executeTakeFirstOrThrow();
+  authenticator.use(googleStrategy);
 
-    user = await db
-      .selectFrom("User")
-      .selectAll()
-      .where("id", "=", Number(result.insertId))
-      .executeTakeFirstOrThrow();
+  authenticatorCache = authenticator;
 
-    return user;
-  }
-);
-
-authenticator.use(googleStrategy);
+  return authenticator;
+}

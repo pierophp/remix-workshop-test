@@ -46,3 +46,9 @@ npm run deploy
 ```
 
 [bindings]: https://developers.cloudflare.com/pages/functions/bindings/
+
+Para ver os logs:
+
+```sh
+npx wrangler pages deployment tail
+```

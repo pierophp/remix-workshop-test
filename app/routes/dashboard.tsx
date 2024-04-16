@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
-import { authenticator } from "~/services/auth.server";
+import { getAuthenticator } from "~/services/auth.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,7 +13,7 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // If the user is already authenticated redirect to /dashboard directly
-  let user = await authenticator.isAuthenticated(request, {
+  let user = await getAuthenticator().isAuthenticated(request, {
     failureRedirect: "/login",
   });
 

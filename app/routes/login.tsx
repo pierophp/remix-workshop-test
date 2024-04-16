@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { Form } from "@remix-run/react";
-import { authenticator } from "~/services/auth.server";
+import { getAuthenticator } from "~/services/auth.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,7 +13,7 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await authenticator.isAuthenticated(request, {
+  await getAuthenticator().isAuthenticated(request, {
     successRedirect: "/dashboard",
   });
 
