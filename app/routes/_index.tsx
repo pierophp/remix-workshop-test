@@ -16,7 +16,7 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function action({ request, params, context }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env as Env;
 
   const body = await request.formData();
